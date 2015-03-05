@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.tv189.interAction.mybatis.dao.ActivityExtDao" >
+  <resultMap id="BaseResultMap" type="com.tv189.interAction.mybatis.model.ActivityExt" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="activityId" property="activityId" jdbcType="VARCHAR" />
+    <result column="ext" property="ext" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="creater" property="creater" jdbcType="VARCHAR" />
+    <result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="lastUpdater" property="lastUpdater" jdbcType="VARCHAR" />
+    <result column="lastUpdateTime" property="lastUpdateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <sql id="BaseColumns" >
+  	id,activityId,ext,remark,creater,createTime,lastUpdater,lastUpdateTime
+  </sql>
+  
+  <select id="selectByActivityId" parameterType="java.lang.String" resultType="com.tv189.interAction.mybatis.model.ActivityExt">
+    select ext,remark
+    from Activity_Ext
+    where activityId = #{activityId,jdbcType=VARCHAR}
+  </select>
+  
+  
+  <select id="getExtByActId" parameterType="java.lang.String" resultType="java.lang.String">
+    select ifnull(ext,'')
+    from Activity_Ext
+    where activityId = #{activityId,jdbcType=VARCHAR}
+  </select>
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tv189.interAction.mybatis.dao.LiveProgramDao">
+	<resultMap id="BaseResultMap"
+		type="com.tv189.interAction.mybatis.model.LiveProgramInfo">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="liveId" property="liveId" jdbcType="VARCHAR" />
+		<result column="liveListId" property="pid" jdbcType="VARCHAR" />
+		<result column="isTaped" property="isRecord" jdbcType="INTEGER" />
+		<result column="ProgramListDate" property="programListDate" jdbcType="VARCHAR" />
+		<result column="startTime" property="startTime" jdbcType="TIMESTAMP" />
+		<result column="endTime" property="endTime" jdbcType="TIMESTAMP" />
+		<result column="title" property="title" jdbcType="VARCHAR" />
+		<result column="length" property="length" jdbcType="VARCHAR" />
+		<result column="sCover" property="sCover" jdbcType="VARCHAR" />
+		<result column="cover" property="cover" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="activityId" property="activityId" jdbcType="VARCHAR" />
+		<result column="adapter" property="adapter" jdbcType="VARCHAR" />
+		<result column="ext" property="ext" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="BaseColumns">
+		id,liveId,liveListId,isTaped,ProgramListDate,startTime,endTime,
+		title,length,sCover,cover,status,activityId,adapter,ext
+	</sql>
+	<!-- getLiveProgramByLiveDate -->
+	<select id="getLiveProgramsByLiveDate" resultMap="BaseResultMap" parameterType="com.tv189.interAction.mybatis.model.LiveProgramInfo" >
+    select liveId,startTime,endTime,title,length,isTaped,liveListId,
+    	ifnull(adapter, '') as adapter,ifnull(status,0) as status,
+    	ifnull(activityId,'') as activityId
+    	from Live_Program_Info
+    where ProgramListDate = #{programListDate,jdbcType=VARCHAR} 
+    	and liveId = #{liveId,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="getLiveProgramByLiveDate" resultMap="BaseResultMap" parameterType="com.tv189.interAction.mybatis.model.LiveProgramInfo" >
+    select liveId,startTime,endTime,title,length,isTaped,liveListId,
+    	ifnull(adapter, '') as adapter,ifnull(status,0) as status,
+    	ifnull(activityId,'') as activityId
+    	from Live_Program_Info
+    where liveId = #{liveId,jdbcType=VARCHAR}
+    <![CDATA[
+      and DATE_FORMAT(#{time,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i:%s') >=  startTime
+      and DATE_FORMAT(#{time,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i:%s') <  endTime
+	]]>
+  </select>
+</mapper>

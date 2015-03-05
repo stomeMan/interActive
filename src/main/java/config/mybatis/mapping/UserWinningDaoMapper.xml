@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tv189.interAction.mybatis.dao.UserWinningDao">
+	<resultMap id="BaseResultMap"
+		type="com.tv189.interAction.mybatis.model.UserWinning">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="activityId" property="activityId" jdbcType="VARCHAR" />
+		<result column="uid" property="uid" jdbcType="VARCHAR" />
+		<result column="commodityId" property="commodityId" jdbcType="VARCHAR" />
+		<result column="commodityName" property="commodityName"
+			jdbcType="VARCHAR" />
+		<result column="auctionFee" property="auctionFee" jdbcType="INTEGER" />
+		<result column="auctionTime" property="auctionTime" jdbcType="TIMESTAMP" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="orderId" property="orderId" jdbcType="VARCHAR" />
+		<result column="couponCode" property="couponCode" jdbcType="VARCHAR" />
+		<result column="couponAmount" property="couponAmount" jdbcType="INTEGER" />
+		<result column="creater" property="creater" jdbcType="VARCHAR" />
+		<result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="lastUpdater" property="lastUpdater" jdbcType="VARCHAR" />
+		<result column="lastUpdateTime" property="lastUpdateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+
+	<sql id="BaseColumns">
+		id,activityId,uid,commodityId,commodityName,auctionFee,auctionTime,status,
+		orderId,couponCode,couponAmount,creater,createTime,lastUpdater,lastUpdateTime
+	</sql>
+
+	<select id="getWinningUserList" resultMap="BaseResultMap"
+		parameterType="java.util.Map">
+		select activityId, uid, commodityId, commodityName, auctionTime
+		from User_Winning
+		where status=2 and DATE_FORMAT(auctionTime, '%Y%m%d') = #{date,jdbcType=VARCHAR}
+		<if test="activityId != null and activityId != '' ">
+		and activityId = #{activityId,jdbcType=VARCHAR}
+		</if>
+		order by createTime DESC
+	</select>
+
+	<insert id="insertUserWinning" parameterType="com.tv189.interAction.mybatis.model.UserWinning">
+		<!--  
+		<selectKey resultType="java.lang.Short" order="BEFORE" keyProperty="id">
+		SELECT SEQ_TEST.NEXTVAL FROM DUAL
+		</selectKey>-->
+		insert into
+		User_Winning(activityId,uid,commodityId,commodityName,auctionFee,auctionTime,status,
+			orderId,couponCode,couponAmount,creater,createTime,lastUpdater,lastUpdateTime)
+		values(
+			#{activityId, jdbcType=VARCHAR},
+			#{uid, jdbcType=VARCHAR},
+			#{commodityId, jdbcType=VARCHAR},
+			#{commodityName, jdbcType=VARCHAR},
+			#{auctionFee, jdbcType=INTEGER},
+			#{auctionTime,	jdbcType=TIMESTAMP},
+			1,
+			null,
+			#{couponCode, jdbcType=VARCHAR},
+			#{couponAmount, jdbcType=INTEGER},
+			#{creater, jdbcType=VARCHAR},
+			now(),
+			#{lastUpdater, jdbcType=VARCHAR},
+			now()
+		)
+	</insert>
+
+
+	
+	<resultMap id="WinUserActivityMap"
+		type="com.tv189.interAction.mybatis.model.UserWinning">
+		<result column="activityId" property="activityId" jdbcType="VARCHAR" />
+		<result column="activityName" property="activityName" jdbcType="VARCHAR" />
+		<result column="uid" property="uid" jdbcType="VARCHAR" />
+		<result column="commodityId" property="commodityId" jdbcType="VARCHAR" />
+		<result column="commodityName" property="commodityName" jdbcType="VARCHAR" />
+		<result column="auctionFee" property="auctionFee" jdbcType="INTEGER" />
+		<result column="auctionTime" property="auctionTime" jdbcType="TIMESTAMP" />
+		<result column="orderId" property="orderId" jdbcType="VARCHAR" />
+		<result column="couponCode" property="couponCode" jdbcType="VARCHAR" />
+		<result column="couponAmount" property="couponAmount" jdbcType="INTEGER" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="picPath" property="picPath" jdbcType="VARCHAR" />
+		
+	</resultMap>
+	
+	<!--  
+	<select id="getWinUsersByUID" resultMap="WinUserActivityMap"
+		parameterType="java.lang.String">
+		select 
+			a.activityId, b.name as activityName, uid, 
+			commodityId, commodityName,auctionFee, auctionTime,
+			orderId,couponCode,couponAmount,a.status
+		  from User_Winning a,Activity b 
+		where a.activityId=b.activityId 
+			and a.uid = #{uid,jdbcType=VARCHAR}
+	</select>
+	-->
+	
+	<select id="getWinUsersByUID" resultMap="WinUserActivityMap"
+		parameterType="java.lang.String">
+		select 
+			a.activityId, b.name as activityName, uid, a.commodityId, a.commodityName,c.picPath as picPath,auctionFee, auctionTime, orderId,couponCode,couponAmount,a.status,a.createTime 
+		from Activity b ,User_Winning a left join Commodity c on a.commodityId= c.commodityId
+		where a.activityId=b.activityId and b.isDelete = 2 
+			and a.uid = #{uid,jdbcType=VARCHAR}
+		order by a.createTime DESC
+	</select>
+	
+	<select id="getCountByActAndUid" resultType="java.lang.Integer"
+		parameterType="com.tv189.interAction.mybatis.model.UserWinning">
+		 select count(*) from User_Winning 
+		where activityId = #{activityId,jdbcType=VARCHAR}
+		 and uid = #{uid,jdbcType=VARCHAR}
+	</select>
+</mapper>

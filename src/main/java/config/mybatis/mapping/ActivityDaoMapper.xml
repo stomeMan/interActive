@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.tv189.interAction.mybatis.dao.ActivityDao" >
+  <resultMap id="BaseResultMap" type="com.tv189.interAction.mybatis.model.Activity" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="activityId" property="activityId" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="startTime" property="startTime" jdbcType="TIMESTAMP" />
+    <result column="endTime" property="endTime" jdbcType="TIMESTAMP" />
+    <result column="isDelete" property="isDelete" jdbcType="INTEGER" />
+    <result column="creater" property="creater" jdbcType="VARCHAR" />
+    <result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="lastUpdater" property="lastUpdater" jdbcType="VARCHAR" />
+    <result column="lastUpdateTime" property="lastUpdateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <sql id="BaseColumns" >
+     id,name,activityId,type,status,description,startTime,endTime,isDelete,
+     creater,createTime,lastUpdater,lastUpdateTime
+  </sql>
+
+  <resultMap id="justExtMap" type="com.tv189.interAction.mybatis.model.ActivityExt" >
+    <result column="ext" property="ext" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <select id="selectByActivityId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="BaseColumns" />
+    from Activity
+    where isDelete=2 and activityId = #{activityId,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="selectByActivityIds" resultMap="BaseResultMap">
+    select 
+    <include refid="BaseColumns" />
+    from Activity
+    where isDelete=2 and activityId in 
+    <foreach item="activityIds" index="index" collection="array" open="(" separator="," close=")">
+  	#{activityIds}  
+  	</foreach>
+  </select>
+  
+  <!-- 获取带拓展信息的活动 拓展信息为对象 -->
+  <resultMap id="ActAndExtMap" type="com.tv189.interAction.mybatis.model.Activity" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="activityId" property="activityId" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="introduce" property="introduce" jdbcType="VARCHAR" />
+    <result column="startTime" property="startTime" jdbcType="TIMESTAMP" />
+    <result column="endTime" property="endTime" jdbcType="TIMESTAMP" />
+    <result column="isDelete" property="isDelete" jdbcType="INTEGER" />
+    <result column="creater" property="creater" jdbcType="VARCHAR" />
+    <result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="lastUpdater" property="lastUpdater" jdbcType="VARCHAR" />
+    <result column="lastUpdateTime" property="lastUpdateTime" jdbcType="TIMESTAMP" />
+    <!--  一对一映射的关键:association   -->
+    <association property="activityExt" column="activityId" select="com.tv189.interAction.mybatis.dao.ActivityExtDao.selectByActivityId"/>
+  </resultMap>
+  
+  <select id="getActAndExtByActId1" resultMap="ActJustExtMap" parameterType="java.lang.String" >
+    select 
+    <include refid="BaseColumns" />
+    from Activity
+    where isDelete=2 and activityId = #{activityId,jdbcType=VARCHAR}
+  </select>
+  
+  <!-- 获取带拓展信息的活动 只提供拓展信息的ext字段 -->
+  <resultMap id="ActJustExtMap" type="com.tv189.interAction.mybatis.model.Activity" >
+    <result column="activityId" property="activityId" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="startTime" property="startTime" jdbcType="TIMESTAMP" />
+    <result column="endTime" property="endTime" jdbcType="TIMESTAMP" />
+    <result column="ext" property="ext" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <select id="getActAndExtByActId" resultMap="ActJustExtMap" parameterType="java.lang.String" >
+    select 
+    	a.activityId, name, type, status, a.description, 
+    	a.startTime, a.endTime,ifnull(b.ext,'') as ext
+    from Activity a left join Activity_Ext b 
+     on a.activityid=b.activityid  
+    where a.isDelete=2 and a.activityId = #{activityId,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="getActAndExtByActIds" resultMap="ActJustExtMap" parameterType="java.lang.String" >
+    select 
+    	a.activityId, name, type, status, a.description, 
+    	a.startTime, a.endTime,ifnull(b.ext,'') as ext
+    from Activity a left join Activity_Ext b 
+    	on a.activityid=b.activityid 
+    where a.isDelete=2 and a.activityId in 
+    <foreach item="activityIds" index="index" collection="array" open="(" separator="," close=")">
+  		#{activityIds}  
+  	</foreach>
+  </select>
+  
+  
+  
+  <resultMap id="ActivityByIdMap" type="com.tv189.interAction.mybatis.model.Activity" >
+    <result column="activityId" property="activityId" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="startTime" property="startTime" jdbcType="TIMESTAMP" />
+    <result column="endTime" property="endTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <select id="getActivityByActId" resultMap="ActivityByIdMap" parameterType="java.lang.String" >
+    select 
+    	a.activityId, name, type, status, a.description, 
+    	a.startTime, a.endTime
+    from Activity a 
+    where a.isDelete=2 and a.activityId = #{activityId,jdbcType=VARCHAR}
+  </select>
+  
+  
+  
+  
+</mapper>

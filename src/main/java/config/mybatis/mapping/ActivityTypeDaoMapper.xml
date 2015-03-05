@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.tv189.interAction.mybatis.dao.ActivityTypeDao" >
+  <resultMap id="BaseResultMap" type="com.tv189.interAction.mybatis.model.ActivityType" >
+    <id column="id" property="typeId" jdbcType="INTEGER" />
+    <result column="name" property="typeName" jdbcType="VARCHAR" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="creater" property="creater" jdbcType="VARCHAR" />
+    <result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="lastUpdater" property="lastUpdater" jdbcType="VARCHAR" />
+    <result column="lastUpdateTime" property="lastUpdateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <sql id="BaseColumns" >
+  	id,name,description,creater,createTime,lastUpdater,lastUpdateTime
+  </sql>
+  
+  <select id="getActivityTypeByActId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select a.id, a.name, a.description 
+    	from Activity_Type a, Activity b 
+    where a.id = b.type and 
+    	b.activityId = #{activityId,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="getActivityTypeByActIds" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select a.id, a.name, a.description 
+    	from Activity_Type a, Activity b 
+    where a.id = b.type and 
+    	b.activityId in 
+  	<foreach item="activityIds" index="index" collection="array" open="(" separator="," close=")">
+  	#{activityIds}  
+  	</foreach>
+  </select>
+  
+  
+</mapper>

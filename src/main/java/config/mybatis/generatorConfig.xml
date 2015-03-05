@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+  PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+  "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+	<classPathEntry	location="D:\Maven\repo\mysql\mysql-connector-java\5.1.31\mysql-connector-java-5.1.31.jar"/>
+	<context id="context">
+		<commentGenerator>
+			<property name="suppressDate" value="true"/>
+			<!-- 是否去除自动生成的注释 true：是 ： false:否 -->
+			<property name="suppressAllComments" value="true"/>
+		</commentGenerator>
+		
+		<jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://192.168.99.83/push_sys_db" userId="root" password="fXL2bO$RQgaRS^lH">
+		</jdbcConnection>
+		
+		<!--  默认false，把JDBC DECIMAL 和 NUMERIC 类型解析为 Integer  
+         true，把JDBC DECIMAL 和 NUMERIC 类型解析为java.math.BigDecimal  
+     	--> 
+		<javaTypeResolver>
+			<property name="forceBigDecimals" value="false"/>
+		</javaTypeResolver>
+		
+		<!-- targetProject:自动生成代码的位置 -->
+		<javaModelGenerator targetPackage="com.tv189.interAction.mybatis.model" targetProject="interAction_v2">
+			<!-- enableSubPackages:是否让schema作为包的后缀 -->
+			<property name="enableSubPackages" value="true"/>
+			<!-- 从数据库返回的值被清理前后的空格  -->
+			<property name="trimStrings" value="true"/>
+		</javaModelGenerator>
+		
+		<sqlMapGenerator targetPackage="config.mybatis.mapping" targetProject="interAction">
+			<property name="enableSubPackages" value="true"/>
+		</sqlMapGenerator>
+		
+		<javaClientGenerator type="XMLMAPPER" targetPackage="com.tv189.interAction.mybatis.dao" targetProject="interAction_v2">
+			<property name="enableSubPackages" value="true"/>
+		</javaClientGenerator>
+		
+		<!-- tableName:用于自动生成代码的数据库表；domainObjectName:对应于数据库表的javaBean类名 -->
+		<table tableName="pa_msg_info" domainObjectName="PaMsgInfoDao" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">
+		</table>
+		<!--  
+		<table tableName="Activity" domainObjectName="ActivityDao" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">
+		</table>
+		-->
+	</context>
+</generatorConfiguration>

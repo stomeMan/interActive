@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+需要修改模块中的如下变量，将能适用于各自的项目
+1. project name   #指定项目名称，后面会引用到，请与Jenkins的Jobname保持一致
+2. src1   #指定源码所有的目录，若不明确，请咨询相关开发人员
+3. lib1		#指定引用库的位置 ，若不明确，请咨询相关开发人员
+
+ -->
+<project name="interactive_service" default="all" basedir=".">
+	<property name="releaseBin.dir" location="${basedir}/releaseBin" />
+	<property name="war.dir" location="${basedir}/war" />
+	<property name="src1" location="${basedir}/src/main/java" />
+	<!--
+	<property name="src2" location="${basedir}/analyze/MonitorEntity/src" />
+	-->
+	<!--设置引用包的位置-->
+	<property name="lib1" value="${basedir}/src/main/webapp/WEB-INF/extlib" />
+	<!--
+	<property  name ="lib2" value ="${basedir}/extend_libs"/>
+	-->
+
+	<path id="libPath">
+		<fileset dir="${lib1}">
+			<include name="**/*.jar"/>
+		</fileset>
+<!--
+		<fileset dir="${lib2}">
+			<include name="*.jar"/>
+		</fileset>
+-->
+	</path>
+
+	<target name="compile">
+		<javac  destdir="${releaseBin.dir}" includeantruntime="on" compiler="javac1.6" source="1.6" encoding="UTF-8" debug="on">
+			<classpath refid="libPath"/>
+			<src path="${src1}"/>
+			<!-- <src path="${src2}"/> -->
+		</javac>
+
+		<copy todir="${releaseBin.dir}" overwrite="true">
+			<fileset dir="${src1}">
+				<exclude name="**/*.java" />
+				<exclude name="**/*.class"/>
+			</fileset>
+			<!--
+			<fileset dir="${src2}">
+				<include name="**"/>
+				<exclude name="**/*.java" />
+				<exclude name="**/*.class"/>
+			</fileset>
+			-->
+		</copy>
+	</target>
+
+	<target name="war" depends="compile">
+		<mkdir dir="${war.dir}" />
+		<war destfile="${war.dir}/${ant.project.name}.war" webxml="${basedir}/src/main/webapp/WEB-INF/web.xml">  
+			<classes dir="${releaseBin.dir}" > </classes>
+<!--
+			<fileset dir="${src1}">
+				<exclude name="**/*.java" />
+				<exclude name="**/*.class" />
+			</fileset>
+-->
+		</war>
+	</target>
+	<target name="all" depends="compile,war"> </target>
+</project>
