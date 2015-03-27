@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tv189.interAction.mybatis.dao.UserWinningGuessTheStockDao" >
+  <resultMap id="BaseResultMap" type="com.tv189.interAction.mybatis.model.UserWinningGuessTheStock" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="activityId" property="activityId" jdbcType="VARCHAR" />
+    <result column="uid" property="uid" jdbcType="VARCHAR" />
+    <result column="accountNo" property="accountNo" jdbcType="VARCHAR" />
+    <result column="appId" property="appId" jdbcType="VARCHAR" />
+    <result column="ip" property="ip" jdbcType="VARCHAR" />
+    <result column="commodityId" property="commodityId" jdbcType="VARCHAR" />
+    <result column="commodityName" property="commodityName" jdbcType="VARCHAR" />
+    <result column="guessInfo" property="guessInfo" jdbcType="VARCHAR" />
+    <result column="guessTime" property="guessTime" jdbcType="TIMESTAMP" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="creater" property="creater" jdbcType="VARCHAR" />
+    <result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="lastUpdater" property="lastUpdater" jdbcType="VARCHAR" />
+    <result column="lastUpdateTime" property="lastUpdateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, activityId, uid, accountNo, appId, ip, commodityId, commodityName, guessInfo, guessTime, 
+    status, creater, createTime, lastUpdater, lastUpdateTime
+  </sql>
+  
+  <insert id="insert" parameterType="com.tv189.interAction.mybatis.model.UserWinningGuessTheStock" >
+    insert into User_Winning_Guess_The_Stock ( activityId, uid, 
+      accountNo, appId, ip, 
+      commodityId, commodityName, guessInfo, guessTime, 
+      status, creater, createTime, 
+      lastUpdater, lastUpdateTime
+      )
+    values (#{activityId,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR}, 
+      #{accountNo,jdbcType=VARCHAR}, #{appId,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, 
+      #{commodityId,jdbcType=VARCHAR}, #{commodityName,jdbcType=VARCHAR}, #{guessInfo,jdbcType=VARCHAR}, #{guessTime,jdbcType=TIMESTAMP}, 
+      #{status,jdbcType=INTEGER}, #{creater,jdbcType=VARCHAR}, now(), 
+      #{lastUpdater,jdbcType=VARCHAR}, now()
+      )
+  </insert>
+  
+  <select id="getWinningUserList" resultMap="BaseResultMap"
+		parameterType="java.util.Map">
+		select activityId, uid, commodityId, commodityName, guessTime
+		from
+		User_Winning_Guess_The_Stock
+		where status=2 and activityId = #{activityId,jdbcType=VARCHAR}
+		<if test="date != null and date != '' ">
+			and DATE_FORMAT(guessTime, '%Y%m%d') = #{date,jdbcType=VARCHAR}
+		</if>
+		order by createTime DESC
+	</select>
+	<select id="getCountByActAndUid" resultType="java.lang.Integer"
+		parameterType="com.tv189.interAction.mybatis.model.UserWinningGuessTheStock">
+		select count(*) from User_Winning_Guess_The_Stock
+		where activityId = #{activityId,jdbcType=VARCHAR}
+		and uid = #{uid,jdbcType=VARCHAR}
+	</select>
+</mapper>

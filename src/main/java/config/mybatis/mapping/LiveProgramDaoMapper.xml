@@ -45,4 +45,37 @@
       and DATE_FORMAT(#{time,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i:%s') <  endTime
 	]]>
   </select>
+  
+  
+  <resultMap id="LiveActivityMap"
+		type="com.tv189.interAction.mybatis.model.LiveActivityRel">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="liveId" property="liveId" jdbcType="VARCHAR" />
+		<result column="activityDate" property="activityDate" jdbcType="VARCHAR" />
+		<result column="activityId" property="activityId" jdbcType="VARCHAR" />
+		<result column="creater" property="creater" jdbcType="VARCHAR" />
+		<result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="lastUpdater" property="lastUpdater" jdbcType="VARCHAR" />
+		<result column="lastUpdateTime" property="lastUpdateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<resultMap id="ActivityByDayMap"
+		type="com.tv189.interAction.mybatis.model.LiveActivityRel">
+		<result column="activityId" property="activityId" jdbcType="VARCHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="type" property="type" jdbcType="INTEGER" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="description" property="description" jdbcType="VARCHAR" />
+		<result column="startTime" property="startTime" jdbcType="TIMESTAMP" />
+		<result column="endTime" property="endTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<select id="queryActivityByDay" resultMap="ActivityByDayMap" parameterType="java.util.Map" >
+    select a.activityId, b.name, b.type, b.status, b.description, b.startTime, b.endTime
+    	from Live_Activity_Relation a, Activity b
+    where a.activityId = b.activityId and b.isDelete=2
+    	and a.liveId = #{liveId,jdbcType=VARCHAR}
+    	and a.activityDate = #{date,jdbcType=VARCHAR} 
+  	</select>
+
 </mapper>

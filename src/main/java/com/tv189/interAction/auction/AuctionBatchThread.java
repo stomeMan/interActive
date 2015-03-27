@@ -127,7 +127,7 @@ public class AuctionBatchThread extends Thread{
 			
 			pst.setString(9, winUser.getAccountNo());
 			pst.setString(10, winUser.getIp());
-			pst.setString(11, winUser.getChannelId());
+			pst.setInt(11, winUser.getChannelId());
 			pst.setString(12, winUser.getAppId());
 			pst.setString(13, winUser.getPromotionChannel());
 			pst.addBatch();

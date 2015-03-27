@@ -1,7 +1,6 @@
 package com.tv189.interAction.aop;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -33,13 +32,10 @@ public class LoggerAopLogic {
              }
 		}
 		
-//		String add = "Request Address = ";
 		String logInfo = "Request INFO=";
 		if(request != null){
-//			add += request.getRemoteAddr();
 			logInfo += request.getRequestURI()+"?"+request.getQueryString();
 		}
-//		logger.info(add);
 		logger.info(logInfo);
 	}
 	

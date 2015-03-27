@@ -39,4 +39,8 @@ public class CacheConfigHelper {
 	public static Integer getCommodityTimeOut() {
 		return Integer.parseInt(DynamicResource.getResource(configName).getString("CommodityTimeOut"));	
 	}
+
+	public static Integer getLiveActivityRelTimeOut() {
+		return Integer.parseInt(DynamicResource.getResource(configName).getString("LiveActivityRelTimeOut"));	
+	}
 }

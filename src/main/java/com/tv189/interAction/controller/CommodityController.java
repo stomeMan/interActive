@@ -5,7 +5,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.tv189.interAction.helper.JsonHelper;
@@ -21,8 +20,14 @@ public class CommodityController {
 	@RequestMapping("/queryCommodityById")
 	@ResponseBody
 	public String queryCommodityById(HttpServletRequest request){
-		String commodityIds = (String) request.getParameter("commodityIds");
-		BasicResponse result = commodityLogic.queryCommodityByIds(commodityIds);
-		return JsonHelper.toJsonStr(result);
+		try {
+			String commodityIds = (String) request.getParameter("commodityIds");
+			BasicResponse result = commodityLogic.queryCommodityByIds(commodityIds);
+			return JsonHelper.toJsonStr(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "";
+		
 	}
 }

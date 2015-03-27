@@ -5,29 +5,48 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
-import com.tv189.interAction.auction.AuctionBatchThread;
-import com.tv189.interAction.auction.AuctionThread;
 import com.tv189.interAction.cache.RedisCommon;
 import com.tv189.interAction.helper.JsonHelper;
+import com.tv189.interAction.helper.KafkaProducer;
 import com.tv189.interAction.helper.StringHelper;
 import com.tv189.interAction.httpRes.BasicResponse;
 import com.tv189.interAction.mybatis.dao.ActivityDao;
+import com.tv189.interAction.mybatis.dao.UserActionDao;
+import com.tv189.interAction.mybatis.dao.UserWinningCloseTypeDao;
 import com.tv189.interAction.mybatis.dao.UserWinningDao;
+import com.tv189.interAction.mybatis.dao.UserWinningGuessThePriceDao;
+import com.tv189.interAction.mybatis.dao.UserWinningGuessTheStockDao;
+import com.tv189.interAction.mybatis.dao.UserWinningPraiseDao;
+import com.tv189.interAction.mybatis.model.UserAction;
 import com.tv189.interAction.mybatis.model.UserWinning;
+import com.tv189.interAction.mybatis.model.UserWinningCloseType;
+import com.tv189.interAction.mybatis.model.UserWinningGuessThePrice;
+import com.tv189.interAction.mybatis.model.UserWinningGuessTheStock;
+import com.tv189.interAction.mybatis.model.UserWinningPraise;
+import com.tv189.interAction.util.ParametersUtil;
 
 @Service("/auctionService")
 public class UserWinningLogic {
-	private static final Logger logger = LoggerFactory.getLogger(UserWinningLogic.class);
 	@Autowired
 	UserWinningDao uwDao;
 	@Autowired
 	ActivityDao activityDao;
+	@Autowired
+	UserWinningCloseTypeDao uwCTDao;
+	@Autowired
+	UserWinningGuessThePriceDao uwGTPDao;
+	@Autowired
+	UserWinningGuessTheStockDao uwGTSDao;
+	@Autowired
+	UserWinningPraiseDao uwPDao;
+	@Autowired
+	UserActionDao uaDao;
+	@Autowired
+	KafkaProducer producer;
 	
 	/**
 	 * 获取抢拍成功的用户名单
@@ -42,7 +61,6 @@ public class UserWinningLogic {
 		List<UserWinning> winUsers = new ArrayList<UserWinning>();
 		String winUserJson = RedisCommon.getData(date, new UserWinning());
 		if(!StringHelper.isNullOrEmpty(winUserJson)){
-//			logger.info(" Oh Yes! It is in the RedisUserWinning ! ");
 			List<UserWinning> winUserList = JsonHelper.toObjectList(winUserJson, UserWinning.class);
 			if(!StringHelper.isNullOrEmpty(activityId)){
 				for (UserWinning userWinning : winUserList) {
@@ -54,7 +72,6 @@ public class UserWinningLogic {
 				winUsers = winUserList;
 			}
 		}else{
-//			logger.info(" Oh No! There is nothing in the RedisUserWinning!");
 			Map<String, String> map = new HashMap<String, String>();
 			map.put("date", date);
 			//map.put("activityId", activityId);
@@ -84,7 +101,6 @@ public class UserWinningLogic {
 		}
 		
 		UserWinning winUser = new UserWinning(winUsers);
-//		logger.info(" 查询结果"+JsonHelper.toJsonStr(winUser));
 		BasicResponse result = new BasicResponse();
 		result.setCode(0);
 		result.setMsg("OK");
@@ -100,18 +116,7 @@ public class UserWinningLogic {
 	 */
 	public BasicResponse queryUserAction(String uid) {
 		List<UserWinning> winUsers = new ArrayList<UserWinning>();
-//		String key = "getUserByUID_" + uid;
-//		//String winUsersJson = RedisUserWinning.getUserWinning(key);
-//		String winUsersJson = RedisCommon.getData(key, "");
-//		if(winUsersJson == null || "".equals(StringHelper.replaceBracket(winUsersJson))){
-//			logger.info(" Oh No! There is nothing in the RedisUserWinning!");
-			winUsers = uwDao.getWinUsersByUID(uid);
-//			RedisCommon.setData(key, winUsers, "");
-//		}else{
-//			logger.info(" Oh Yes! It is in the RedisUserWinning ! It's key is:"+key);
-//			winUsers = JsonHelper.toObjectList(winUsersJson, UserWinning.class);
-//		}
-		
+		winUsers = uwDao.getWinUsersByUID(uid);
 		BasicResponse result = new BasicResponse();
 		result.setCode(0);
 		result.setMsg("OK");
@@ -125,14 +130,113 @@ public class UserWinningLogic {
 	 * @return
 	 */
 	public BasicResponse auction(UserWinning winUser) {
+		String checkTimeAndPrice = ParametersUtil.checkTimeAndPrice(winUser.getActivityId(), 
+				winUser.getAuctionFee(), winUser.getAuctionTime());
+		if(!"".equals(checkTimeAndPrice)){
+			//return new BasicResponse(101, checkTimeAndPrice, "竞拍失败！");
+		}
 		int count = uwDao.getCountByActAndUid(winUser);
 		if(count>0){
 			BasicResponse result = new BasicResponse();
 			result.setCode(1);
 			result.setMsg("每个用户只能竞拍一个活动");
-			return result;
+			//return result;
 		}
-		return AuctionThread.addQueue(winUser);
+		producer.push(ParametersUtil.TOPIC_AUCTION, winUser.getUid(), JSON.toJSONString(winUser));
+		return new BasicResponse(0, "OK", "已加入竞拍队列");
+	}
+
+	public BasicResponse auctionCommon(Object obj) {
+		String uid = "";
+		String topic = "";
+		
+		if(obj instanceof UserWinningPraise){
+			UserWinningPraise object = (UserWinningPraise) obj;
+			uid = object.getUid();
+			topic = ParametersUtil.TOPIC_PRAISE;
+		}
+		
+		if(obj instanceof UserWinningGuessTheStock){
+			UserWinningGuessTheStock object = (UserWinningGuessTheStock) obj;
+			uid = object.getUid();
+			topic = ParametersUtil.TOPIC_GUESSTHESTOCK;
+		}
+		
+		producer.push(topic, uid, JSON.toJSONString(obj));
+		return new BasicResponse(0, "OK", "已加入竞拍队列");
+	}
+
+	public BasicResponse addUserAction(UserAction ua) {
+		String uid = ua.getUid();
+		int flag = Integer.parseInt(uid.substring(uid.length()-1, uid.length())) % 3;
+		if(flag == 0){
+			uaDao.insertUserAction3(ua);
+		}
+		if(flag == 1){
+			uaDao.insertUserAction1(ua);
+		}
+		if(flag == 2){
+			uaDao.insertUserAction2(ua);
+		}
+		return new BasicResponse(0, "OK", null);
+	}
+
+	public BasicResponse queryUserActive(UserAction ua) {
+		List<UserAction> userActions = new ArrayList<UserAction>();
+		String uid = ua.getUid();
+		int flag = Integer.parseInt(uid.substring(uid.length()-1, uid.length())) % 3;
+		if(flag == 0){
+			userActions = uaDao.selectUserActive3(ua);
+		}
+		if(flag == 1){
+			userActions = uaDao.selectUserActive1(ua);
+		}
+		if(flag == 2){
+			userActions = uaDao.selectUserActive2(ua);
+		}
+		
+		BasicResponse result = new BasicResponse();
+		result.setCode(0);
+		result.setMsg("OK");
+		result.setInfo(userActions);
+		return result;
+	}
+
+	public BasicResponse auctionForCloseType(UserWinningCloseType winUserCT) {
+		String checkTimeAndPrice = ParametersUtil.checkTimeAndPrice(winUserCT.getActivityId(), 
+				winUserCT.getAuctionFee(), winUserCT.getAuctionTime());
+		if(!"".equals(checkTimeAndPrice)){
+			//return new BasicResponse(101, checkTimeAndPrice, "竞拍失败！");
+		}
+		
+		int count = uwCTDao.getCountByActAndUid(winUserCT);
+		if(count>0){
+			BasicResponse result = new BasicResponse();
+			result.setCode(1);
+			result.setMsg("每个用户只能竞拍一个活动");
+			//return result;
+		}
+		producer.push(ParametersUtil.TOPIC_CLOSETYPE, winUserCT.getUid(), JSON.toJSONString(winUserCT));
+		return new BasicResponse(0, "OK", "已加入竞拍队列");
+	}
+
+	public BasicResponse auctionForGuessPrice(
+			UserWinningGuessThePrice winUserGTP) {
+		String checkTimeAndPrice = ParametersUtil.checkTimeAndPrice(winUserGTP.getActivityId(), 
+				winUserGTP.getAuctionFee(), winUserGTP.getAuctionTime());
+		if(!"".equals(checkTimeAndPrice)){
+			//return new BasicResponse(101, checkTimeAndPrice, "竞拍失败！");
+		}
+		
+		int count = uwGTPDao.getCountByActAndUid(winUserGTP);
+		if(count>0){
+			BasicResponse result = new BasicResponse();
+			result.setCode(1);
+			result.setMsg("每个用户只能竞拍一个活动");
+			//return result;
+		}
+		producer.push(ParametersUtil.TOPIC_GUESSTHEPRICE, winUserGTP.getUid(), JSON.toJSONString(winUserGTP));
+		return new BasicResponse(0, "OK", "已加入竞拍队列");
 	}
 
 	

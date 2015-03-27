@@ -1,10 +1,10 @@
 package com.tv189.interAction.logic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,6 @@ import com.tv189.interAction.mybatis.model.Commodity;
 
 @Service("/cmmodityService")
 public class CommodityLogic {
-	private static final Logger logger = LoggerFactory.getLogger(CommodityLogic.class);
 	@Autowired
 	CommodityDao commodityDao;
 	

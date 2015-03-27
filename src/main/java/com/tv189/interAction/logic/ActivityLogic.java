@@ -1,10 +1,10 @@
 package com.tv189.interAction.logic;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,16 +15,39 @@ import com.tv189.interAction.helper.StringHelper;
 import com.tv189.interAction.httpRes.BasicResponse;
 import com.tv189.interAction.mybatis.dao.ActivityDao;
 import com.tv189.interAction.mybatis.dao.ActivityExtDao;
+import com.tv189.interAction.mybatis.dao.UserActionDao;
+import com.tv189.interAction.mybatis.dao.UserWinningCloseTypeDao;
+import com.tv189.interAction.mybatis.dao.UserWinningDao;
+import com.tv189.interAction.mybatis.dao.UserWinningGuessThePriceDao;
+import com.tv189.interAction.mybatis.dao.UserWinningGuessTheStockDao;
+import com.tv189.interAction.mybatis.dao.UserWinningPraiseDao;
 import com.tv189.interAction.mybatis.model.Activity;
 import com.tv189.interAction.mybatis.model.ActivityExt;
+import com.tv189.interAction.mybatis.model.UserWinning;
+import com.tv189.interAction.mybatis.model.UserWinningCloseType;
+import com.tv189.interAction.mybatis.model.UserWinningGuessThePrice;
+import com.tv189.interAction.mybatis.model.UserWinningGuessTheStock;
+import com.tv189.interAction.mybatis.model.UserWinningPraise;
 
 @Service("/activityService")
 public class ActivityLogic {
-	private static final Logger logger = LoggerFactory.getLogger(ActivityLogic.class);
 	@Autowired
 	ActivityDao activityDao;
 	@Autowired
 	ActivityExtDao actExtDao;
+	@Autowired
+	UserWinningDao uwDao;
+	@Autowired
+	UserWinningCloseTypeDao uwCTDao;
+	@Autowired
+	UserWinningGuessThePriceDao uwGTPDao;
+	@Autowired
+	UserWinningGuessTheStockDao uwGTSDao;
+	@Autowired
+	UserWinningPraiseDao uwPDao;
+	@Autowired
+	UserActionDao uaDao;
+	
 	/**
 	 * 获取活动信息
 	 * @param activityIds 活动编号
@@ -78,42 +101,28 @@ public class ActivityLogic {
 	
 	public BasicResponse queryActivityInfos(String activityIds, int needExt) {
 		List<Activity> activityList = new ArrayList<Activity>();
-		//String activitys = RedisActivity.getActivity(activityIds);
 		String activitys = RedisCommon.getData(activityIds, new Activity());
 		String[] actIdArr = activityIds.split(StringHelper.COMMA);
 		if(needExt != 0){
 			//需要Ext信息 
 			if(activitys == null || "".equals(StringHelper.replaceBracket(activitys))){
-//				logger.info(" There is no activitys in the redis ");
 				activityList = activityDao.selectByActivityIds(actIdArr);
 				RedisCommon.setData(activityIds, activityList, new Activity());
 				for (Activity act : activityList) {
 					String actExt = RedisCommon.getData(act.getActivityId(), new ActivityExt());
 					if(actExt==null || "".equals(actExt)){
-//						logger.info(" There is no acitvityExts in the redis ");
 						actExt = actExtDao.getExtByActId(act.getActivityId());
-//						logger.info(" actExt from dao: "+actExt);
 						RedisCommon.setData(act.getActivityId(), actExt, new ActivityExt());
-					}else{
-//						logger.info(" AcitvityExts: "+actExt);
-//						logger.info(" AcitvityExts are in the redis ! ");
 					}
 					act.setExt(actExt);
 				}
 			}else{
-//				logger.info(" Activitys: "+activitys);
-//				logger.info(" Activitys are in the redis ! The key is: "+activityIds);
 				List<Activity> list = JsonHelper.toObjectList(activitys, Activity.class);
 				for (Activity act : list) {
 					String actExt = RedisCommon.getData(act.getActivityId(), new ActivityExt());
 					if(actExt==null || "".equals(actExt)){
-//						logger.info(" There is no acitvityExts in the redis ");
 						actExt = actExtDao.getExtByActId(act.getActivityId());
-//						logger.info(" actExt from dao: "+actExt);
 						RedisCommon.setData(act.getActivityId(), actExt, new ActivityExt());
-					}else{
-//						logger.info(" AcitvityExts: "+actExt);
-//						logger.info(" AcitvityExts are in the redis ");
 					}
 					act.setExt(actExt);
 				}
@@ -122,12 +131,9 @@ public class ActivityLogic {
 			
 		}else{
 			if(activitys == null || "".equals(StringHelper.replaceBracket(activitys))){
-//				logger.info(" No Exts get activity from database");
 				activityList = activityDao.selectByActivityIds(actIdArr);
 				RedisCommon.setData(activityIds, activityList, new Activity());
 			}else{
-//				logger.info(" No Exts get activity from redis: "+ activitys);
-//				logger.info(" redis key is " +activityIds);
 				activityList = JsonHelper.toObjectList(activitys, Activity.class);
 			}
 			
@@ -143,14 +149,48 @@ public class ActivityLogic {
 	public String getExtByActId(String activityId){
 		String actExt = RedisCommon.getData(activityId, new ActivityExt());
 		if(actExt==null || "".equals(actExt)){
-//			logger.info(" There is no acitvityExts in the redis ");
 			actExt = actExtDao.getExtByActId(activityId);
-//			logger.info(" actExt from dao: "+actExt);
 			RedisCommon.setData(activityId, actExt, new ActivityExt());
 		}else{
-//			logger.info(" AcitvityExts: "+actExt);
-//			logger.info(" AcitvityExts are in the redis ! ");
 		}
 		return actExt;
+	}
+
+	public BasicResponse queryWinningInfo(String activityId, String type,
+			String date) {
+		//1荷兰式竞拍，2闭式竞拍，3价格竞猜，4点赞狂魔，5指数竞猜，6闯关竞答
+		type = type=="" ? "0" : type;
+		int flag = Integer.parseInt(type);
+		
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("activityId", activityId);
+		map.put("date", date);
+		
+		BasicResponse result = new BasicResponse();
+		result.setCode(0);
+		result.setMsg("OK");
+		
+		if(flag == 1){
+			List<UserWinning> list = uwDao.getWinningUserList(map);
+			result.setInfo(list);
+		}
+		if(flag == 2){
+			List<UserWinningCloseType> list = uwCTDao.getWinningUserList(map);
+			result.setInfo(list);
+		}
+		if(flag == 3){
+			List<UserWinningGuessThePrice> list = uwGTPDao.getWinningUserList(map);
+			result.setInfo(list);
+		}
+		if(flag == 4){
+			List<UserWinningPraise> list = uwPDao.getWinningUserList(map);
+			result.setInfo(list);
+		}
+		
+		if(flag == 5){
+			List<UserWinningGuessTheStock> list = uwGTSDao.getWinningUserList(map);
+			result.setInfo(list);
+		}
+		return result;
 	}
 }

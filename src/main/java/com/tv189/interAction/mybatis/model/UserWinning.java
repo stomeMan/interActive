@@ -28,7 +28,7 @@ public class UserWinning  implements Serializable{
 	
 	private String accountNo;
 	private String appId;
-	private String channelId;
+	private Integer channelId;
 	private String ip;
 	private String promotionChannel;
 	private String picPath;
@@ -193,11 +193,11 @@ public class UserWinning  implements Serializable{
 		this.appId = appId;
 	}
 
-	public String getChannelId() {
+	public Integer getChannelId() {
 		return channelId;
 	}
 
-	public void setChannelId(String channelId) {
+	public void setChannelId(Integer channelId) {
 		this.channelId = channelId;
 	}
 

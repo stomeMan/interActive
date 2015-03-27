@@ -5,14 +5,19 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.tv189.interAction.cache.RedisCommon;
 import com.tv189.interAction.helper.DynamicResource;
 import com.tv189.interAction.httpRes.BasicResponse;
+import com.tv189.interAction.mybatis.model.ActivityExt;
 import com.tv189.interAction.mybatis.model.UserWinning;
 
 public class AuctionThread extends Thread{
@@ -26,6 +31,11 @@ public class AuctionThread extends Thread{
 
     private static Queue<UserWinning> auctionQueue = new ConcurrentLinkedQueue<UserWinning>();
 	public static BasicResponse addQueue(UserWinning winUser){
+		//add by huanghua 20150309  新增竞拍时间和价格校验
+		String checkTimeAndPrice = checkTimeAndPrice(winUser);
+		if(!"".equals(checkTimeAndPrice)){
+			return new BasicResponse(101, checkTimeAndPrice, "竞拍失败！");
+		}
 		auctionQueue.add(winUser); 
 		return new BasicResponse(0, "OK", "已加入竞拍队列");
 	}
@@ -81,7 +91,7 @@ public class AuctionThread extends Thread{
 			
 			pst.setString(9, winUser.getAccountNo());
 			pst.setString(10, winUser.getIp());
-			pst.setString(11, winUser.getChannelId());
+			pst.setInt(11, winUser.getChannelId());
 			pst.setString(12, winUser.getAppId());
 			pst.setString(13, winUser.getPromotionChannel());
 			
@@ -104,5 +114,36 @@ public class AuctionThread extends Thread{
             e.printStackTrace();  
         } 
 	}
-
+	
+	/**
+	 * 判断竞拍时间和竞拍价格
+	 * @param winUser 竞拍用户
+	 * @return
+	 * 竞拍时间是系统当前时间3s内误差
+	 * 竞拍价格是活动扩展信息价格属性3s内误差
+	 */
+	private static String checkTimeAndPrice(UserWinning winUser) {
+		Date auctionTime = winUser.getAuctionTime();
+		Date now = new Date();
+		long second = (auctionTime.getTime() - now.getTime()) / 1000;
+		if(second > 3 || second < -3){
+			return "竞拍时间不符合活动要求";
+		}
+		
+		Integer auctionFee = winUser.getAuctionFee();
+		String actExt = RedisCommon.getData(winUser.getActivityId(), new ActivityExt());
+		JSONObject jsonObj = JSON.parseObject(actExt);
+		Integer frequency = jsonObj.getInteger("frequency");
+		Integer stepSize = jsonObj.getInteger("stepSize");
+		Integer price = JSON.parseObject(jsonObj.getString("commodityInfo")).getInteger("price");
+		Integer min = price - stepSize / frequency * 3;
+		Integer max = price + stepSize / frequency * 3;
+		
+		if(auctionFee > max || auctionFee < 0 || auctionFee < min){
+			return "竞拍价格有误";
+		}
+		
+		return "";
+	}
+	
 }

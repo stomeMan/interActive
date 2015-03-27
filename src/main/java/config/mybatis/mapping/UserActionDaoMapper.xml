@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tv189.interAction.mybatis.dao.UserActionDao">
+	<resultMap id="BaseResultMap"
+		type="com.tv189.interAction.mybatis.model.UserAction">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="uid" property="uid" jdbcType="VARCHAR" />
+		<result column="appId" property="appId" jdbcType="VARCHAR" />
+		<result column="ip" property="ip" jdbcType="VARCHAR" />
+		<result column="ext" property="ext" jdbcType="VARCHAR" />
+		<result column="status"  property="status" jdbcType="INTEGER" />
+		<result column="creater" property="creater" jdbcType="VARCHAR" />
+		<result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="lastUpdater" property="lastUpdater" jdbcType="VARCHAR" />
+		<result column="lastUpdateTime" property="lastUpdateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+
+	<sql id="BaseColumns">
+		id,uid,appId,ip,ext,status,creater,createTime,lastUpdater,lastUpdateTime
+	</sql>
+
+	<insert id="insertUserAction1" parameterType="com.tv189.interAction.mybatis.model.UserAction">
+		insert into
+		User_Action_1(uid,appId,ip,ext,status,creater,createTime,lastUpdater,lastUpdateTime)
+		values(
+			#{uid, jdbcType=VARCHAR},
+			#{appId, jdbcType=VARCHAR},
+			#{ip, jdbcType=VARCHAR},
+			#{ext, jdbcType=VARCHAR},
+			1,
+		    #{creater, jdbcType=VARCHAR},
+			now(),
+			#{lastUpdater, jdbcType=VARCHAR},
+			now()
+		)
+	</insert>
+	<insert id="insertUserAction2" parameterType="com.tv189.interAction.mybatis.model.UserAction">
+		insert into
+		User_Action_2(uid,appId,ip,ext,status,creater,createTime,lastUpdater,lastUpdateTime)
+		values(
+			#{uid, jdbcType=VARCHAR},
+			#{appId, jdbcType=VARCHAR},
+			#{ip, jdbcType=VARCHAR},
+			#{ext, jdbcType=VARCHAR},
+			#{status, jdbcType=INTEGER},
+		    #{creater, jdbcType=VARCHAR},
+			now(),
+			#{lastUpdater, jdbcType=VARCHAR},
+			now()
+		)
+	</insert>
+	<insert id="insertUserAction3" parameterType="com.tv189.interAction.mybatis.model.UserAction">
+		insert into
+		User_Action_3(uid,appId,ip,ext,status,creater,createTime,lastUpdater,lastUpdateTime)
+		values(
+			#{uid, jdbcType=VARCHAR},
+			#{appId, jdbcType=VARCHAR},
+			#{ip, jdbcType=VARCHAR},
+			#{ext, jdbcType=VARCHAR},
+			#{status, jdbcType=INTEGER},
+		    #{creater, jdbcType=VARCHAR},
+			now(),
+			#{lastUpdater, jdbcType=VARCHAR},
+			now()
+		)
+	</insert>
+	
+	<select id="selectUserActive1" resultMap="BaseResultMap"
+		parameterType="com.tv189.interAction.mybatis.model.UserAction">
+	select uid, appId, ip, ext
+		from User_Action_1
+	where uid = #{uid, jdbcType=VARCHAR}
+		<if test="appId != null and appId != '' ">
+		 and appId = #{appId, jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<select id="selectUserActive2" resultMap="BaseResultMap"
+		parameterType="com.tv189.interAction.mybatis.model.UserAction">
+	select uid, appId, ip, ext
+		from User_Action_2
+	where uid = #{uid, jdbcType=VARCHAR}
+		<if test="appId != null and appId != '' ">
+		 and appId = #{appId, jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<select id="selectUserActive3" resultMap="BaseResultMap"
+		parameterType="com.tv189.interAction.mybatis.model.UserAction">
+	select uid, appId, ip, ext
+		from User_Action_3
+	where uid = #{uid, jdbcType=VARCHAR}
+		<if test="appId != null and appId != '' ">
+		 and appId = #{appId, jdbcType=VARCHAR}
+		</if>
+	</select>
+</mapper>

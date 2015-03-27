@@ -15,5 +15,6 @@ public interface UserWinningDao extends ISqlDao{
 	
 	public Integer getCountByActAndUid(UserWinning winUser);
 	
+	public void insertUserWinningList(List<UserWinning> list);
 	
 }

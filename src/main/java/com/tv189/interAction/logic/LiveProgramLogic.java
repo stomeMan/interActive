@@ -18,6 +18,7 @@ import com.tv189.interAction.helper.JsonHelper;
 import com.tv189.interAction.helper.StringHelper;
 import com.tv189.interAction.httpRes.BasicResponse;
 import com.tv189.interAction.mybatis.dao.LiveProgramDao;
+import com.tv189.interAction.mybatis.model.LiveActivityRel;
 import com.tv189.interAction.mybatis.model.LiveProgramInfo;
 
 @Service("/liveService")
@@ -48,7 +49,6 @@ public class LiveProgramLogic {
 			//RedisLiveProgram.setLiveProgram(key, lpiList);
 			RedisCommon.setData(key, lpiList, new LiveProgramInfo());
 		}else{
-//			logger.info(" queryScheduleInfo get from redis"+rlp);
 			lpiList = JsonHelper.toObjectList(rlp, LiveProgramInfo.class);
 		}
 		BasicResponse result = new BasicResponse();
@@ -86,7 +86,6 @@ public class LiveProgramLogic {
 				return new BasicResponse(1,"查无数据",null);
 			}
 		}else{
-//			logger.info(" queryNowLiveInfo get from redis"+rlp);
 			Date dateTime = new Date();
 			try {
 				dateTime = (new SimpleDateFormat("yyyyMMddHHmmss")).parse(time);
@@ -98,7 +97,6 @@ public class LiveProgramLogic {
 			List<LiveProgramInfo> lpiListRedis = JsonHelper.toObjectList(rlp, LiveProgramInfo.class);
 			for (LiveProgramInfo lpi : lpiListRedis) {
 				if(dateTime.before(lpi.getEndTime()) && dateTime.after(lpi.getStartTime())){
-//					logger.info(" get from liveProgramInfo redis in the whole day");
 					//lpiListResult.add(lpi);
 					liveProgramInfo = lpi;
 				}
@@ -116,6 +114,28 @@ public class LiveProgramLogic {
 		//liveProgramDao.getChannelInfoByLive(liveId);
 		
 		return null;
+	}
+
+	public BasicResponse queryActivityByDay(String liveId, String date) {
+		List<LiveActivityRel> lars = new ArrayList<LiveActivityRel>();
+		String rlar = RedisCommon.getData(date, new LiveActivityRel());
+		if(rlar == null || "".equals(StringHelper.replaceBracket(rlar))){
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("liveId", liveId);
+			map.put("date", date);
+			lars = liveProgramDao.queryActivityByDay(map);
+			if(lars!=null){
+				RedisCommon.setData(date, lars, new LiveActivityRel());
+			}
+		} else {
+			lars = JsonHelper.toObjectList(rlar, LiveActivityRel.class);
+		}
+		
+		BasicResponse result = new BasicResponse();
+		result.setCode(0);
+		result.setMsg("OK");
+		result.setInfo(lars);	
+		return result;
 	}
 
 }

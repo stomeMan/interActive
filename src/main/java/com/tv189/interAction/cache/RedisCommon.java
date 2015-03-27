@@ -20,13 +20,14 @@ public class RedisCommon {
 		timeMap.put("LiveProgramInfo", CacheConfigHelper.getLiveProgramInfoTimeOut());
 		timeMap.put("UserWinning", CacheConfigHelper.getUserWinningTimeOut());
 		timeMap.put("Commodity", CacheConfigHelper.getCommodityTimeOut());
+		timeMap.put("LiveActivityRel", CacheConfigHelper.getLiveActivityRelTimeOut());
 		
 		keyMap.put("Activity", "ACTIVITY_");
 		keyMap.put("ActivityExt", "ACTIVITY_EXT_");
 		keyMap.put("ActivityType", "ACTIVIRY_TYPE_");
 		keyMap.put("LiveProgramInfo", "LIVE_PROGRAM_INFO_");
 		keyMap.put("UserWinning", "USER_WINNING_");
-		keyMap.put("Commodity", "COMMODITY_");
+		keyMap.put("LiveActivityRel", "LIVE_ACTIVITY_RELATION_");
 	}
 	
 	public static void setData(String key, String value, Object obj){

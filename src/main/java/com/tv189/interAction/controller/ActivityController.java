@@ -2,8 +2,6 @@ package com.tv189.interAction.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,21 +14,39 @@ import com.tv189.interAction.logic.ActivityLogic;
 @Controller
 @RequestMapping("/activityService")
 public class ActivityController {
-	private static final Logger logger = LoggerFactory.getLogger(ActivityController.class);
 	@Autowired
 	ActivityLogic activityLogic;
 	
 	@RequestMapping("/queryActivityInfo")
 	@ResponseBody
 	public String queryActivityInfo(HttpServletRequest request){
-		String activityIds = (String) request.getParameter("activityIds");
-		String needExt = request.getParameter("needExt");
-		if(needExt==null || "".equals(needExt)) {
-			needExt = "0";
+		try {
+			String activityIds = (String) request.getParameter("activityIds");
+			String needExt = request.getParameter("needExt");
+			if(needExt==null || "".equals(needExt)) {
+				needExt = "0";
+			}
+			BasicResponse result = activityLogic.queryActivityInfo(activityIds, Integer.parseInt(needExt));
+			return JsonHelper.toJsonStr(result);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-//		logger.info("queryActivityInfo needExt is:"+needExt);
-		BasicResponse result = activityLogic.queryActivityInfo(activityIds, Integer.parseInt(needExt));
-		return JsonHelper.toJsonStr(result);
+		return "";
 	}
 	
+	@RequestMapping("/queryWinningInfo")
+	@ResponseBody
+	public String queryWinningInfo(HttpServletRequest request){
+		try {
+			String activityId = (String) request.getParameter("activityId");
+			String type = (String) request.getParameter("type");
+			String date = (String) request.getParameter("date");
+			
+			BasicResponse result = activityLogic.queryWinningInfo(activityId, type, date);
+			return JsonHelper.toJsonStr(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
 }

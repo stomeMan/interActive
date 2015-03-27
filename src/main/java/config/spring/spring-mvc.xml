@@ -55,13 +55,20 @@
         <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
     </bean>
     
+    <!--  
     <bean id="auctionThread" class="com.tv189.interAction.auction.AuctionThread"
 		init-method="initThread" lazy-init="false">
 	</bean>
+	-->
 	<!-- <bean id="auctionBatchThread" class="com.tv189.interAction.auction.AuctionBatchThread"
 		init-method="initThread" lazy-init="false">
 	</bean>
 	-->
+	
+	<!-- <bean id="auctionMyBatisThread" class="com.tv189.interAction.auction.AuctionMyBatisThread"
+		init-method="initThread" lazy-init="false">
+	</bean> -->
+	
     <!-- 拦截器 -->  
     <!-- <mvc:interceptors>  
         <bean class="com.core.mvc.MyInteceptor" />  
